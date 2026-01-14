@@ -11,7 +11,7 @@ function init()
   -- lockConsumption: if true, lock the resource to block consumeResource
   self.lockConsumption = (self.cfg.lockConsumption ~= false)
   -- debugLog: when true, emit sb.logInfo messages
-  self.debugLog = (self.cfg.debugLog ~= true)
+  self.debugLog = (self.cfg.debugLog == true)
   -- Tracks whether the effect was active previously
   self.wasActive = false
 end
