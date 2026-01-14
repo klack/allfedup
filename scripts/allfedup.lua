@@ -6,7 +6,7 @@ function init()
   self.enabled = self.cfg.enabled
   self.debugLog = self.cfg.debugLog
   self.wasFrozen = false
-  self.foodlevel = nil
+  self.foodlevel = 0
 end
 
 local function hasPrefix(s, p)
@@ -46,7 +46,7 @@ local function stateMessage(action)
 end
 
 local function freezeFood(active)
-  -- Apply or remove the protection state based on 'active'
+  -- Apply or remove the reeze state based on 'active'
   if active and not self.wasFrozen then
     self.foodlevel = status.resource("food")
     self.wasFrozen = true
@@ -54,8 +54,10 @@ local function freezeFood(active)
   end
   if active then
     if(self.foodlevel > status.resource("food")) then
+      -- Freeze food level at stored value
       status.setResource("food", self.foodlevel)
     else
+      -- Allow eating food
       self.foodlevel = status.resource("food")
     end
     status.setResourceLocked("food", true)
@@ -67,14 +69,13 @@ local function freezeFood(active)
 end
 
 function unfreezeFood()
-  status.setResource("food", self.foodlevel)
   status.setResourceLocked("food", false)
   self.wasFrozen = false
   logInfo(stateMessage("Deactivated"))
 end
 
 function update(dt)
-  -- Periodically determine whether protection should be active and apply it
+  -- Periodically determine whether feeze should be active
   if status.isResource("food") then
     freezeFood(playerInTargetWorld() or isLounging())
   end
