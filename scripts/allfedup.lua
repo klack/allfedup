@@ -11,12 +11,16 @@ local function hasPrefix(s, p)
   return s and p and s:sub(1, #p) == p
 end
 
-local function playerInTargetWorld(cfg)
+local function isLounging()
+  return player.loungingIn() ~= nil
+end
+
+local function playerInTargetWorld()
   local wid = player.worldId()
   if not wid then return false end
 
   -- Prefix match (ship worlds)
-  for _, p in ipairs(cfg.worldIdPrefixes or {}) do
+  for _, p in ipairs(self.cfg.worldIdPrefixes or {}) do
     if hasPrefix(wid, p) then
       return true
     end
@@ -25,14 +29,16 @@ local function playerInTargetWorld(cfg)
   return false
 end
 
-local function isLounging()
-  return player.loungingIn() ~= nil
+local function logInfo(fmt, ...)
+  if self.debugLog then sb.logInfo(fmt, ...) end
 end
 
-function update(dt)
-  local wid = player.worldId()
-  local active = playerInTargetWorld(self.cfg) or isLounging()
+local function stateMessage(action)
+  return string.format("[allfedup] %s for %s on %s, lounging=%s",
+    action, tostring(player.name()), tostring(player.worldId()), tostring(isLounging()))
+end
 
+local function applyActive(active)
   if active then
     -- Some hunger drains use consumeResource (blocked by lock),
     -- others modify/set the resource directly. Keeping it full is the robust approach.
@@ -42,31 +48,33 @@ function update(dt)
     if self.lockConsumption then
       status.setResourceLocked(self.resourceName, true)
     end
-    if self.wasActive == false then
+    if not self.wasActive then
       self.wasActive = true
-      if self.debugLog then
-        sb.logInfo("[allfedup] Activated for %s on %s, lounging=%s", tostring(player.name()), tostring(wid), tostring(isLounging()))
-      end
+      logInfo(stateMessage("Activated"))
     end
   else
     if self.wasActive then
       if self.lockConsumption then
         status.setResourceLocked(self.resourceName, false)
-        if self.debugLog then
-          sb.logInfo("[allfedup] Deactivated for %s on %s, lounging=%s", tostring(player.name()), tostring(wid), tostring(isLounging()))
-        end        
       end
+      logInfo(stateMessage("Deactivated"))
       self.wasActive = false
     end
   end
+end
+
+function update(dt)
+  local active = playerInTargetWorld() or isLounging()
+  applyActive(active)
 end
 
 function uninit()
   if self.lockConsumption then
     status.setResourceLocked(self.resourceName, false)
     if self.wasActive and self.debugLog then
-      local wid = player.worldId()
-        sb.logInfo("[allfedup] Deactivated for %s on %s, lounging=%s", tostring(player.name()), tostring(wid), tostring(isLounging()))
-    end        
+      sb.logInfo("[allfedup] Deactivated for %s on %s, lounging=%s",
+        tostring(player.name()), tostring(player.worldId()), tostring(isLounging()))
+    end
+    self.wasActive = false
   end
 end
