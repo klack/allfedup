@@ -3,7 +3,6 @@
 
 function init()
   self.cfg = root.assetJson("/allfedup.config") or {}
-  self.resourceName = "food"
   self.enabled = self.cfg.enabled
   self.debugLog = self.cfg.debugLog
   self.wasFrozen = false
@@ -42,8 +41,8 @@ end
 
 local function stateMessage(action)
   -- Build a consistent debug message including player and world context
-  return string.format("[allfedup] %s for %s on %s, lounging=%s",
-    action, tostring(player.name()), tostring(player.worldId()), tostring(isLounging()))
+  return string.format("[allfedup] %s for %s on %s, food=%s, lounging=%s",
+    action, player.name(), tostring(player.worldId()), status.resource("food"), isLounging())
 end
 
 local function freezeFood(active)
@@ -54,8 +53,10 @@ local function freezeFood(active)
     logInfo(stateMessage("Activated"))
   end
   if active then
-    status.setResource(self.resourceName, self.foodlevel)
-    status.setResourceLocked(self.resourceName, true)
+    if(self.foodlevel > status.resource("food")) then
+      status.setResource("food", self.foodlevel)
+    end
+    status.setResourceLocked("food", true)
   else
     if self.wasFrozen then
       unfreezeFood()
@@ -63,16 +64,16 @@ local function freezeFood(active)
   end
 end
 
-local function unfreezeFood()
+function unfreezeFood()
   status.setResource("food", self.foodlevel)
-  status.setResourceLocked(self.resourceName, false)
+  status.setResourceLocked("food", false)
   self.wasFrozen = false
   logInfo(stateMessage("Deactivated"))
 end
 
 function update(dt)
   -- Periodically determine whether protection should be active and apply it
-  if status.isResource(self.resourceName) then
+  if status.isResource("food") then
     freezeFood(playerInTargetWorld() or isLounging())
   end
 end
