@@ -1,0 +1,11 @@
+{
+  "name" : "AllFedUp",
+  "version" : "1.0.0",
+  "path" : ".",
+  "dependencies" : [],
+  "metadata" : {
+    "author" : "klack",
+    "description" : "Locks the hunger bar in specific locations",
+    "friendlyName" : "All Fed Up"
+  }
+}
