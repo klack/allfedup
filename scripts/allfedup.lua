@@ -1,9 +1,5 @@
 function init()
   self.cfg = root.assetJson("/allfedup.config") or {}
-  self.worldIds = {}
-  for _, wid in ipairs(self.cfg.worldIds or {}) do
-    self.worldIds[wid] = true
-  end
   self.resourceName = self.cfg.resourceName or "food"
   self.keepFull = (self.cfg.keepFull ~= false)
   self.lockConsumption = (self.cfg.lockConsumption ~= false)
@@ -49,7 +45,7 @@ function update(dt)
     if self.wasActive == false then
       self.wasActive = true
       if self.debugLog then
-        sb.logInfo("[allfedup] Activated for %s on %s", tostring(player.name()), tostring(wid))
+        sb.logInfo("[allfedup] Activated for %s on %s, lounging=%s", tostring(player.name()), tostring(wid), tostring(isLounging()))
       end
     end
   else
@@ -57,7 +53,7 @@ function update(dt)
       if self.lockConsumption then
         status.setResourceLocked(self.resourceName, false)
         if self.debugLog then
-          sb.logInfo("[allfedup] Not active for %s on %s", tostring(player.name()), tostring(wid))
+          sb.logInfo("[allfedup] Deactivated for %s on %s, lounging=%s", tostring(player.name()), tostring(wid), tostring(isLounging()))
         end        
       end
       self.wasActive = false
@@ -70,7 +66,7 @@ function uninit()
     status.setResourceLocked(self.resourceName, false)
     if self.wasActive and self.debugLog then
       local wid = player.worldId()
-      sb.logInfo("[allfedup] Deactivated for %s on %s", tostring(player.name()), tostring(wid))
+        sb.logInfo("[allfedup] Deactivated for %s on %s, lounging=%s", tostring(player.name()), tostring(wid), tostring(isLounging()))
     end        
   end
 end
