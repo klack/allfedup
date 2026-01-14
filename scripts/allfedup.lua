@@ -2,18 +2,12 @@
 -- while the player is lounging or in configured world prefixes. Debug logging available.
 
 function init()
-  -- Load configuration and derive behavior flags
   self.cfg = root.assetJson("/allfedup.config") or {}
-  -- Name of the resource to protect (e.g. "food")
-  self.resourceName = self.cfg.resourceName or "food"
-  -- keepFull: if true, constantly set resource to 100%
-  self.keepFull = (self.cfg.keepFull ~= false)
-  -- lockConsumption: if true, lock the resource to block consumeResource
-  self.lockConsumption = (self.cfg.lockConsumption ~= false)
-  -- debugLog: when true, emit sb.logInfo messages
-  self.debugLog = (self.cfg.debugLog == true)
-  -- Tracks whether the effect was active previously
-  self.wasActive = false
+  self.resourceName = "food"
+  self.enabled = self.cfg.enabled
+  self.debugLog = self.cfg.debugLog
+  self.wasFrozen = false
+  self.foodlevel = nil
 end
 
 local function hasPrefix(s, p)
@@ -52,49 +46,40 @@ local function stateMessage(action)
     action, tostring(player.name()), tostring(player.worldId()), tostring(isLounging()))
 end
 
-local function applyActive(active)
+local function freezeFood(active)
   -- Apply or remove the protection state based on 'active'
+  if active and not self.wasFrozen then
+    self.foodlevel = status.resource("food")
+    self.wasFrozen = true
+    logInfo(stateMessage("Activated"))
+  end
   if active then
-    -- Some hunger drains use consumeResource (blocked by lock),
-    -- others modify/set the resource directly. Keeping it full is the robust approach.
-    if self.keepFull and status.isResource(self.resourceName) then
-      -- Ensure the resource is at 100%
-      status.setResourcePercentage(self.resourceName, 1.0)
-    end
-    if self.lockConsumption then
-      -- Lock the resource to prevent consumption via consumeResource
-      status.setResourceLocked(self.resourceName, true)
-    end
-    if not self.wasActive then
-      self.wasActive = true
-      logInfo(stateMessage("Activated"))
-    end
+    status.setResource(self.resourceName, self.foodlevel)
+    status.setResourceLocked(self.resourceName, true)
   else
-    if self.wasActive then
-      if self.lockConsumption then
-        -- Unlock the resource when deactivating
-        status.setResourceLocked(self.resourceName, false)
-      end
-      logInfo(stateMessage("Deactivated"))
-      self.wasActive = false
+    if self.wasFrozen then
+      unfreezeFood()
     end
   end
 end
 
+local function unfreezeFood()
+  status.setResource("food", self.foodlevel)
+  status.setResourceLocked(self.resourceName, false)
+  self.wasFrozen = false
+  logInfo(stateMessage("Deactivated"))
+end
+
 function update(dt)
   -- Periodically determine whether protection should be active and apply it
-  local active = playerInTargetWorld() or isLounging()
-  applyActive(active)
+  if status.isResource(self.resourceName) then
+    freezeFood(playerInTargetWorld() or isLounging())
+  end
 end
 
 function uninit()
   -- Ensure resource lock is released on script unload
-  if self.lockConsumption then
-    status.setResourceLocked(self.resourceName, false)
-    if self.wasActive and self.debugLog then
-      sb.logInfo("[allfedup] Deactivated for %s on %s, lounging=%s",
-        tostring(player.name()), tostring(player.worldId()), tostring(isLounging()))
-    end
-    self.wasActive = false
+  if self.wasFrozen then
+    unfreezeFood()
   end
 end
