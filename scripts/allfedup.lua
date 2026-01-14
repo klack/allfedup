@@ -55,6 +55,8 @@ local function freezeFood(active)
   if active then
     if(self.foodlevel > status.resource("food")) then
       status.setResource("food", self.foodlevel)
+    else
+      self.foodlevel = status.resource("food")
     end
     status.setResourceLocked("food", true)
   else
