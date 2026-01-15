@@ -17,9 +17,13 @@ local function hasPrefix(s, p)
   return s and p and s:sub(1, #p) == p
 end
 
-local function isLounging()
-  -- Returns true if the player is currently lounging (e.g. on a bed/seat)
-  return player.loungingIn() ~= nil
+local function getName()
+  -- Vanilla clients do not have player.name(); fall back to uniqueId()
+  if player.name then 
+    return player.name()
+  end
+  
+  return player.uniqueId()
 end
 
 local function playerInTargetWorld()
@@ -43,11 +47,16 @@ end
 local function stateMessage(action)
   -- Build a consistent debug message including player and world context
   return string.format("[allfedup] %s for %s on %s, %s=%s, lounging=%s",
-    action, player.name(), tostring(player.worldId()), self.resource, tostring(status.resource(self.resource)), tostring(isLounging()))
+    action, getName(), tostring(player.worldId()), self.resource, tostring(status.resource(self.resource)), tostring(player.isLounging()))
+end
+
+local function unfreezeResource()
+  status.setResourceLocked(self.resource, false)
+  self.wasFrozen = false
+  logInfo(stateMessage("Deactivated"))
 end
 
 -- Localized freeze/unfreeze for the configured resource
-local unfreezeResource
 local function freezeResource(active)
   -- Apply or remove the freeze state based on 'active'
   if active and not self.wasFrozen then
@@ -67,12 +76,6 @@ local function freezeResource(active)
   else
     if self.wasFrozen then unfreezeResource() end
   end
-end
-
-unfreezeResource = function()
-  status.setResourceLocked(self.resource, false)
-  self.wasFrozen = false
-  logInfo(stateMessage("Deactivated"))
 end
 
 function update(dt)
