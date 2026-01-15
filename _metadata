@@ -5,7 +5,7 @@
   "dependencies" : [],
   "metadata" : {
     "author" : "klack",
-    "description" : "Locks the hunger bar in specific locations",
+    "description" : "Prevents hunger while in safe locations like player ships, player owned space stations, and The Outpost",
     "friendlyName" : "All Fed Up"
   }
 }
