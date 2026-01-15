@@ -42,9 +42,8 @@ end
 
 local function stateMessage(action)
     -- Build a consistent debug message including player and world context
-    return string.format("[allfedup] %s for %s on %s, %s=%s, lounging=%s", action, world.entityName(player.id()),
-        tostring(player.worldId()), self.resource, tostring(status.resource(self.resource)),
-        tostring(player.isLounging()))
+    return string.format("[allfedup] %s for %s on %s, %s=%s", action, world.entityName(player.id()),
+        tostring(player.worldId()), self.resource, tostring(status.resource(self.resource)))
 end
 
 local function unfreezeResource()
@@ -82,7 +81,7 @@ function update(dt)
         return
     end
     if status.isResource(self.resource) then
-        freezeResource(playerInTargetWorld() or isLounging())
+        freezeResource(playerInTargetWorld())
     end
 end
 
