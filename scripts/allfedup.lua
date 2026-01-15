@@ -17,15 +17,6 @@ local function hasPrefix(s, p)
   return s and p and s:sub(1, #p) == p
 end
 
-local function getName()
-  -- Vanilla clients do not have player.name(); fall back to uniqueId()
-  if player.name then 
-    return player.name()
-  end
-  
-  return player.uniqueId()
-end
-
 local function playerInTargetWorld()
   -- Check current worldId against configured prefixes (useful for ship/world IDs)
   local wid = player.worldId()
@@ -39,6 +30,7 @@ local function playerInTargetWorld()
   return false
 end
 
+
 local function logInfo(fmt, ...)
   -- Conditional logging helper to centralize debug checks
   if self.debugLog then sb.logInfo(fmt, ...) end
@@ -47,7 +39,7 @@ end
 local function stateMessage(action)
   -- Build a consistent debug message including player and world context
   return string.format("[allfedup] %s for %s on %s, %s=%s, lounging=%s",
-    action, getName(), tostring(player.worldId()), self.resource, tostring(status.resource(self.resource)), tostring(player.isLounging()))
+    action, world.entityName(player.id(), tostring(player.worldId()), self.resource, tostring(status.resource(self.resource)), tostring(player.isLounging())))
 end
 
 local function unfreezeResource()
