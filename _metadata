@@ -1,11 +1,17 @@
 {
-  "name" : "AllFedUp",
-  "version" : "1.0.0",
-  "path" : ".",
+  "author" : "klack",
   "dependencies" : [],
+  "description" : "Prevents hunger while in safe locations like player ships, player owned space stations, and The Outpost",
+  "friendlyName" : "All Fed Up",
+  "link" : "steam://url/CommunityFilePage/3646731576",
   "metadata" : {
     "author" : "klack",
     "description" : "Prevents hunger while in safe locations like player ships, player owned space stations, and The Outpost",
     "friendlyName" : "All Fed Up"
-  }
+  },
+  "name" : "All Fed Up",
+  "path" : ".",
+  "steamContentId" : "3646731576",
+  "tags" : "Food and Farming|Mechanics",
+  "version" : "1.0.1"
 }
