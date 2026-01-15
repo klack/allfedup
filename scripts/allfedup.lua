@@ -1,5 +1,5 @@
--- AllFedUp: keeps a player's configured resource (default "food") full and optionally locked
--- while the player is lounging or in configured world prefixes. Debug logging available.
+-- AllFedUp: Prevents hunger drain while in safe locations such as player ships, 
+-- player owned space stations, and The Outpost.
 function init()
     self.cfg = root.assetJson("/allfedup.config") or {}
     -- defaults
@@ -42,9 +42,9 @@ end
 
 local function stateMessage(action)
     -- Build a consistent debug message including player and world context
-    return string.format("[allfedup] %s for %s on %s, %s=%s, lounging=%s", action,
-        world.entityName(player.id()), tostring(player.worldId()), self.resource,
-        tostring(status.resource(self.resource)), tostring(player.isLounging()))
+    return string.format("[allfedup] %s for %s on %s, %s=%s, lounging=%s", action, world.entityName(player.id()),
+        tostring(player.worldId()), self.resource, tostring(status.resource(self.resource)),
+        tostring(player.isLounging()))
 end
 
 local function unfreezeResource()
@@ -53,7 +53,6 @@ local function unfreezeResource()
     logInfo(stateMessage("Deactivated"))
 end
 
--- Localized freeze/unfreeze for the configured resource
 local function freezeResource(active)
     -- Apply or remove the freeze state based on 'active'
     if active and not self.wasFrozen then
