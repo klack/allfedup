@@ -9,6 +9,8 @@ function init()
     self.worldPrefixes = self.cfg.worldIdPrefixes or {}
     self.wasFrozen = false
     self.resourceLevel = 0
+    self.fedWhenStill = (self.cfg.fedWhenStill == true)
+    self.stillSpeedThreshold = self.cfg.stillSpeedThreshold or 5
 end
 
 local function hasPrefix(s, p)
@@ -35,15 +37,20 @@ end
 
 local function logInfo(fmt, ...)
     -- Conditional logging helper to centralize debug checks
-    if self.debugLog then
-        sb.logInfo(fmt, ...)
-    end
+    sb.logInfo(fmt, ...)
 end
 
 local function stateMessage(action)
     -- Build a consistent debug message including player and world context
     return string.format("[allfedup] %s for %s on %s, %s=%s", action, world.entityName(player.id()),
         tostring(player.worldId()), self.resource, tostring(status.resource(self.resource)))
+end
+
+local function isPlayerStill()
+    -- Returns true when the player's speed is below the configured threshold
+    local vel = mcontroller.velocity()
+    local speed = math.sqrt(vel[1] * vel[1] + vel[2] * vel[2])
+    return speed < self.stillSpeedThreshold
 end
 
 local function unfreezeResource()
@@ -81,7 +88,9 @@ function update(dt)
         return
     end
     if status.isResource(self.resource) then
-        freezeResource(playerInTargetWorld())
+        local shouldFreeze = playerInTargetWorld()
+            or (self.fedWhenStill and isPlayerStill())
+        freezeResource(shouldFreeze)
     end
 end
 
