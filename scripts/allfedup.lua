@@ -4,13 +4,15 @@ function init()
     self.cfg = root.assetJson("/allfedup.config") or {}
     -- defaults
     self.enabled = (self.cfg.enabled ~= false)
-    self.debugLog = self.cfg.debugLog
+    self.debug = self.cfg.debug
     self.resource = self.cfg.resource or "food"
     self.worldPrefixes = self.cfg.worldIdPrefixes or {}
     self.wasFrozen = false
     self.resourceLevel = 0
+    self.stillTime = 0
     self.fedWhenStill = (self.cfg.fedWhenStill == true)
-    self.stillSpeedThreshold = self.cfg.stillSpeedThreshold or 5
+    self.stillSpeedThreshold = 5
+    self.stillDelay = self.cfg.stillDelay or 0
 end
 
 local function hasPrefix(s, p)
@@ -53,6 +55,14 @@ local function isPlayerStill()
     return speed < self.stillSpeedThreshold
 end
 
+local function updateStillTime(dt)
+    if isPlayerStill() then
+        self.stillTime = self.stillTime + dt
+    else
+        self.stillTime = 0
+    end
+end
+
 local function unfreezeResource()
     status.setResourceLocked(self.resource, false)
     self.wasFrozen = false
@@ -87,9 +97,12 @@ function update(dt)
     if not self.enabled then
         return
     end
+    updateStillTime(dt)
     if status.isResource(self.resource) then
-        local shouldFreeze = playerInTargetWorld()
-            or (self.fedWhenStill and isPlayerStill())
+        local stillActive = self.fedWhenStill
+            and (self.stillDelay == 0 or self.stillTime >= self.stillDelay)
+            and isPlayerStill()
+        local shouldFreeze = playerInTargetWorld() or stillActive
         freezeResource(shouldFreeze)
     end
 end
